@@ -1,0 +1,62 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: url("background.jpg");
+  background-size: contain;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+div {
+  width: 440px;
+  background: #4d1700;
+}
+h1 {
+  color: #ffd0a4;
+  font-size: 50px;
+  font-weight: bold;
+  text-align: center;
+  background: #4d1700;
+}
+canvas {
+  border: 5px solid #4d1700;
+}
+.error {
+  width: 100%;
+  height: 100%;
+  background: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+}
+.error h1 {
+  font-size: 30px;
+  background: transparent;
+  color: rgb(212, 212, 2);
+}
+.error p {
+  background: transparent;
+  color: black;
+}
+h1 b {
+  font-weight: 800;
+}
+
+@media screen and (max-width: 600px) {
+  body {
+    background: white;
+    position: absolute;
+  }
+  .error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
