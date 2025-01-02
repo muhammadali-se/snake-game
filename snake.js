@@ -14,7 +14,6 @@ class SnakeBody {
 let blockSize = 20;
 let cols = 21;
 let rows = 21;
-let blockCount = (cols + rows) / 2;
 let board;
 let context;
 
@@ -38,18 +37,18 @@ window.onload = function () {
   board = document.getElementById("board");
   board.height = rows * blockSize;
   board.width = cols * blockSize;
-  context = board.getContext("2d"); // For drawing on the board
+  context = board.getContext("2d");
 
   placeFood();
-
   document.addEventListener("keydown", changeDirection);
-
-  //   update();
   setInterval(update, 1000 / 10);
 };
 
 function update() {
   if (gameOver) {
+    context.fillStyle = "black";
+    context.font = "30px Arial";
+    context.fillText("Game Over!", board.width / 4, board.height / 2);
     return;
   }
 
@@ -59,11 +58,10 @@ function update() {
   context.fillStyle = "red";
   context.fillRect(foodX, foodY, blockSize, blockSize);
 
-  if (snakeX == foodX && snakeY == foodY) {
-    snakeBody.push([foodX, foodY]);
+  if (snakeX === foodX && snakeY === foodY) {
+    snakeBody.push(new SnakeBody(foodX, foodY));
     placeFood();
     coin += 100;
-
     coinField.innerText = coin;
   }
 
@@ -72,7 +70,7 @@ function update() {
   }
 
   if (snakeBody.length) {
-    snakeBody[0] = [snakeX, snakeY];
+    snakeBody[0] = new SnakeBody(snakeX, snakeY);
   }
 
   context.fillStyle = "green";
@@ -81,64 +79,54 @@ function update() {
   context.fillRect(snakeX, snakeY, blockSize, blockSize);
 
   context.fillStyle = "#4d1700";
-  for (let i = 0; i < snakeBody.length; i++) {
-    let part = snakeBody[i];
-    context.fillRect(
-      part.x * blockCount,
-      part.y * blockCount,
-      blockSize,
-      blockSize
-    );
-  }
-
-  for (let i = 0; i < snakeBody.length; i++) {
-    context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
+  for (let part of snakeBody) {
+    context.fillRect(part.x, part.y, blockSize, blockSize);
   }
 
   // Game over condition
   if (
     snakeX < 0 ||
-    snakeX > cols * blockSize ||
+    snakeX >= cols * blockSize ||
     snakeY < 0 ||
-    snakeY > rows * blockSize
+    snakeY >= rows * blockSize
   ) {
     gameOver = true;
-    alert("Game Over!");
-    location.reload();
+    return;
   }
 
-  for (let i = 0; i < snakeBody.length; i++) {
-    if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
+  for (let part of snakeBody) {
+    if (snakeX === part.x && snakeY === part.y) {
       gameOver = true;
-      alert("Game Over!");
-      location.reload();
+      return;
     }
   }
+
+  // Increment score
+  score++;
+  scoreField.innerText = score;
 }
 
 let changeDirection = function (e) {
-  if (e.code == "ArrowUp" && velocityY != 1) {
+  if (e.code === "ArrowUp" && velocityY !== 1) {
     velocityX = 0;
     velocityY = -1;
-  } else if (e.code == "ArrowDown" && velocityY != -1) {
+  } else if (e.code === "ArrowDown" && velocityY !== -1) {
     velocityX = 0;
     velocityY = 1;
-  } else if (e.code == "ArrowLeft" && velocityX != 1) {
+  } else if (e.code === "ArrowLeft" && velocityX !== 1) {
     velocityX = -1;
     velocityY = 0;
-  } else if (e.code == "ArrowRight" && velocityX != -1) {
+  } else if (e.code === "ArrowRight " && velocityX !== -1) {
     velocityX = 1;
     velocityY = 0;
   }
-
-  setInterval(() => {
-    score++;
-
-    scoreField.innerText = score;
-  }, 1000 / 10);
 };
 
 function placeFood() {
-  foodX = Math.floor(Math.random() * cols) * blockSize;
-  foodY = Math.floor(Math.random() * rows) * blockSize;
+  let newFoodPosition;
+  do {
+    foodX = Math.floor(Math.random() * cols) * blockSize;
+    foodY = Math.floor(Math.random() * rows) * blockSize;
+    newFoodPosition = snakeBody.some(part => part.x === foodX && part.y === foodY);
+  } while (newFoodPosition);
 }
