@@ -10,27 +10,25 @@ class SnakeBody {
   }
 }
 
-// board
+// Board
 let blockSize = 20;
 let cols = 21;
 let rows = 21;
 let board;
 let context;
 
-// Snake head
+// Snake
 let snakeX = 10 * blockSize;
 let snakeY = 10 * blockSize;
-
 let velocityX = 0;
 let velocityY = 0;
-
-// Snake body
 let snakeBody = [];
 
 // Food
 let foodX;
 let foodY;
 
+// Game State
 let gameOver = false;
 
 window.onload = function () {
@@ -39,6 +37,12 @@ window.onload = function () {
   board.width = cols * blockSize;
   context = board.getContext("2d");
 
+  if (window.innerWidth <= 600) {
+    document.querySelector(".error").style.display = "flex";
+    document.querySelector("canvas").style.display = "none";
+    return;
+  }
+
   placeFood();
   document.addEventListener("keydown", changeDirection);
   setInterval(update, 1000 / 10);
@@ -46,25 +50,31 @@ window.onload = function () {
 
 function update() {
   if (gameOver) {
-    context.fillStyle = "black";
-    context.font = "30px Arial";
-    context.fillText("Game Over!", board.width / 4, board.height / 2);
+    showGameOverPopup();
     return;
   }
 
+  // Clear the board
   context.fillStyle = "#ffd0a4";
   context.fillRect(0, 0, board.width, board.height);
 
+  // Draw food
   context.fillStyle = "red";
   context.fillRect(foodX, foodY, blockSize, blockSize);
 
+  // Check if snake eats food
   if (snakeX === foodX && snakeY === foodY) {
     snakeBody.push(new SnakeBody(foodX, foodY));
     placeFood();
     coin += 100;
     coinField.innerText = coin;
+    score++;
+    scoreField.innerText = score;
+    scoreField.style.color = "yellow"; // Highlight score temporarily
+    setTimeout(() => (scoreField.style.color = "black"), 500);
   }
 
+  // Move snake body
   for (let i = snakeBody.length - 1; i > 0; i--) {
     snakeBody[i] = snakeBody[i - 1];
   }
@@ -73,9 +83,12 @@ function update() {
     snakeBody[0] = new SnakeBody(snakeX, snakeY);
   }
 
-  context.fillStyle = "green";
+  // Update head position
   snakeX += velocityX * blockSize;
   snakeY += velocityY * blockSize;
+
+  // Draw snake
+  context.fillStyle = "green";
   context.fillRect(snakeX, snakeY, blockSize, blockSize);
 
   context.fillStyle = "#4d1700";
@@ -83,30 +96,19 @@ function update() {
     context.fillRect(part.x, part.y, blockSize, blockSize);
   }
 
-  // Game over condition
+  // Game Over conditions
   if (
     snakeX < 0 ||
     snakeX >= cols * blockSize ||
     snakeY < 0 ||
-    snakeY >= rows * blockSize
+    snakeY >= rows * blockSize ||
+    snakeBody.some(part => part.x === snakeX && part.y === snakeY)
   ) {
     gameOver = true;
-    return;
   }
-
-  for (let part of snakeBody) {
-    if (snakeX === part.x && snakeY === part.y) {
-      gameOver = true;
-      return;
-    }
-  }
-
-  // Increment score
-  score++;
-  scoreField.innerText = score;
 }
 
-let changeDirection = function (e) {
+function changeDirection(e) {
   if (e.code === "ArrowUp" && velocityY !== 1) {
     velocityX = 0;
     velocityY = -1;
@@ -116,17 +118,37 @@ let changeDirection = function (e) {
   } else if (e.code === "ArrowLeft" && velocityX !== 1) {
     velocityX = -1;
     velocityY = 0;
-  } else if (e.code === "ArrowRight " && velocityX !== -1) {
+  } else if (e.code === "ArrowRight" && velocityX !== -1) {
     velocityX = 1;
     velocityY = 0;
   }
-};
+}
 
 function placeFood() {
-  let newFoodPosition;
   do {
     foodX = Math.floor(Math.random() * cols) * blockSize;
     foodY = Math.floor(Math.random() * rows) * blockSize;
-    newFoodPosition = snakeBody.some(part => part.x === foodX && part.y === foodY);
-  } while (newFoodPosition);
+  } while (snakeBody.some(part => part.x === foodX && part.y === foodY));
 }
+
+function showGameOverPopup() {
+  const popup = document.getElementById("game-over-popup");
+  const finalScore = document.getElementById("final-score");
+  finalScore.textContent = score; // Display final score
+  popup.style.display = "block"; // Show popup
+}
+
+document.getElementById("restart-button").addEventListener("click", () => {
+  score = 0;
+  coin = 0;
+  scoreField.innerText = score;
+  coinField.innerText = coin;
+  snakeX = 10 * blockSize;
+  snakeY = 10 * blockSize;
+  velocityX = 0;
+  velocityY = 0;
+  snakeBody = [];
+  gameOver = false;
+  placeFood();
+  document.getElementById("game-over-popup").style.display = "none";
+});
